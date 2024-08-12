@@ -32,6 +32,7 @@ const SearchLocations = () => {
           style={styles.searchBox}
           value={searchText}
           onChangeText={text => searchUser(text)}
+          
         />
       </View>
       <FlatList

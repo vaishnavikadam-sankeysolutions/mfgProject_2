@@ -7,6 +7,9 @@ import {
   Image,
   KeyboardAvoidingView,
   Platform,
+  TouchableOpacity,
+  TextInput,
+  Dimensions,
 } from 'react-native';
 import MapView, {
   PROVIDER_GOOGLE,
@@ -18,17 +21,21 @@ import MapView, {
 } from 'react-native-maps';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import {GOOGLE_MAPS_API_KEY} from '../config/constants';
-import MapViewDirections from 'react-native-maps-directions';
 import GetLocation from 'react-native-get-location';
+import {useNavigation} from '@react-navigation/native';
+import SearchScreen from './SearchScreen';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import * as Animatable from 'react-native-animatable';
 
 const GoogleMaps = () => {
+  const navigation = useNavigation();
+
   useEffect(() => {
     requestLocationPermission();
   }, []);
 
-  const [origin, setOrigin] = useState();
-  const [destination, setDestination] = useState();
   const [permissionGranted, setPermissionGranted] = useState(false);
+  const [selectedMarker, setSelectedMarker] = useState(null);
 
   const requestLocationPermission = async () => {
     try {
@@ -92,6 +99,34 @@ const GoogleMaps = () => {
       title: 'Location C is here',
       description: 'this is third location',
     },
+    {
+      id: 4,
+      latitude: 19.211446712228447,
+      longitude: 72.96859608531221,
+      title: 'J K Gram',
+      description: 'Thane West',
+    },
+    {
+      id: 5,
+      latitude: 19.059588886413565,
+      longitude: 72.8300831364641,
+      title: 'Bandra West',
+      description: 'Mumbai, Maharashtra',
+    },
+    {
+      id: 6,
+      latitude: 19.208746639475205,
+      longitude: 73.0978290751019,
+      title: 'Dombivli',
+      description: 'located on the banks of Ulhas River',
+    },
+    {
+      id: 7,
+      latitude: 16.852963883437056,
+      longitude: 74.58015070640423,
+      title: 'Sangli',
+      description: 'Sangli Miraj Kupwad, Maharashtra',
+    },
   ]);
 
   const MyCustomMarkerView = () => {
@@ -109,6 +144,14 @@ const GoogleMaps = () => {
         <Text>MyCustomCalloutView</Text>
       </View>
     );
+  };
+
+  const handleMarkerPress = marker => {
+    setSelectedMarker(marker);
+  };
+
+  const handleClosePress = () => {
+    setSelectedMarker(null);
   };
 
   const styles = StyleSheet.create({
@@ -134,6 +177,40 @@ const GoogleMaps = () => {
     listView: {
       backgroundColor: 'white',
     },
+    filterButton: {
+      position: 'absolute',
+      top: Platform.OS === 'ios' ? 40 : 20,
+      right: 10,
+      backgroundColor: 'white',
+      borderRadius: 5,
+      padding: 10,
+      elevation: 5,
+      zIndex: 1,
+    },
+    filterButtonText: {
+      color: 'blue',
+    },
+    filterIcon: {
+      width: 30,
+      height: 30,
+    },
+    bottomSheet: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      backgroundColor: 'white',
+      padding: 20,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      elevation: 10,
+      zIndex: 2,
+    },
+    closeButton: {
+      position: 'absolute',
+      top: 10,
+      right: 10,
+    },
   });
 
   return (
@@ -141,24 +218,20 @@ const GoogleMaps = () => {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}>
       <View style={styles.searchContainer}>
-        <GooglePlacesAutocomplete
-          placeholder="Search"
-          fetchDetails
-          onPress={(data, details = null) => {
-            // 'details' is provided when fetchDetails = true
-            console.log(data, details);
-          }}
-          query={{
-            key: GOOGLE_MAPS_API_KEY,
-            language: 'en',
-          }}
-          onFail={error => console.log(error)}
-          styles={{
-            textInput: styles.searchInput,
-            listView: styles.listView,
-          }}
+        <TextInput
+          placeholder="Enter location, address, charger"
+          style={styles.searchBox}
+          onPress={() => navigation.navigate('SearchScreen')}
         />
       </View>
+      <TouchableOpacity
+        style={styles.filterButton}
+        onPress={() => navigation.navigate('FilterScreen')}>
+        <Image
+          source={require('../assets/filter-icon.png')}
+          style={styles.filterIcon}
+        />
+      </TouchableOpacity>
       <MapView
         provider={PROVIDER_GOOGLE}
         style={styles.map}
@@ -190,6 +263,7 @@ const GoogleMaps = () => {
               title={marker.title}
               description={marker.description}
               onDragEnd={e => console.log({x: e.nativeEvent.coordinate})}
+              onPress={() => handleMarkerPress(marker)} // Add onPress to Marker
             />
           );
         })}
@@ -217,31 +291,45 @@ const GoogleMaps = () => {
           coordinates={[
             {
               latitude: 19.19665442682184,
-              longitude: 72.96415070450443,
+              longitude: 72.95049649927044,
             },
             {
-              latitude: 19.189957178945843,
-              longitude: 72.96419530466774,
+              latitude: 19.19168024173307,
+              longitude: 72.96545448147583,
             },
             {
-              latitude: 19.189578081294787,
-              longitude: 72.97869035774266,
-            },
-            {
-              latitude: 19.197538948620153,
-              longitude: 72.98141096770443,
+              latitude: 19.194472943811188,
+              longitude: 72.95093547281747,
             },
           ]}
+          fillColor="rgba(255, 0, 0, 0.5)"
+          strokeColor="blue"
+          strokeWidth={2}
         />
-
-        {origin != undefined && destination != undefined ? (
-          <MapViewDirections
-            origin={origin}
-            destination={destination}
-            apikey={GOOGLE_MAPS_API_KEY}
-          />
-        ) : null}
       </MapView>
+
+      {selectedMarker && (
+        <Animatable.View
+          animation="slideInUp"
+          duration={500}
+          style={styles.bottomSheet}>
+          <TouchableOpacity
+            style={styles.closeButton}
+            onPress={handleClosePress}>
+            <Ionicons name="close" size={24} color="black" />
+          </TouchableOpacity>
+          <Text style={{fontSize: 18, fontWeight: 'bold'}}>
+            {selectedMarker.title}
+          </Text>
+          <Text style={{marginTop: 10}}>{selectedMarker.description}</Text>
+          <Text style={{marginTop: 10}}>
+            Latitude: {selectedMarker.latitude}
+          </Text>
+          <Text style={{marginTop: 10}}>
+            Longitude: {selectedMarker.longitude}
+          </Text>
+        </Animatable.View>
+      )}
     </KeyboardAvoidingView>
   );
 };

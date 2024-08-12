@@ -22,7 +22,7 @@ const brands = [
 
 const connectorTypes = ['CCS', 'CHAdeMO'];
 
-const FilterScreen = () => {
+const FilterScreen2 = () => {
   const [nonEvLocations, setNonEvLocations] = useState(false);
   const [chargerPower, setChargerPower] = useState([50, 400]);
   const [selectedBrands, setSelectedBrands] = useState([]);
@@ -270,4 +270,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default FilterScreen;
+export default FilterScreen2;
